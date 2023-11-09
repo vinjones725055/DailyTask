@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<!-- Define the document type as HTML -->
+<html lang="en">
+<!-- Start of HTML document, with "en" set as the default language -->
+
+<head>
+    <!-- Start of the header section -->
+    <meta charset="UTF-8">
+    <!-- Set the character encoding to UTF-8 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Set the compatibility mode for Internet Explorer to the latest version -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Set the viewport for the page to the device's width and initial zoom level -->
+    <title>Document</title>
+    <!-- Set the title of the page to "Document" -->
+    <style>
+        /* Define some styles for the elements with the "edit" and "delete" classes */
+        table {
+            width: 100%;
+            /* This will make the table take the full width of its container */
+            table-layout: fixed;
+            /* This will fix the table layout and prevent it from expanding beyond its container */
+            border-collapse: collapse;
+            /* This will collapse the borders between table cells */
+        }
+
+        td,
+        th {
+            border: 1px solid #ddd;
+            /* This will add a border to the table cells */
+            padding: 8px;
+            /* This will add padding to the table cells */
+            overflow: hidden;
+            /* This will hide the content that exceeds the cell width */
+            text-overflow: ellipsis;
+            /* This will add '...' at the end of the hidden content */
+            white-space: nowrap;
+            /* This will prevent the content from wrapping to the next line */
+        }
+
+        .id {
+            width: 5%;
+            /* This will set the width of the first column to 5% */
+        }
+
+        .data {
+            width: 85%;
+            /* This will set the width of the second column to 75% */
+        }
+        .edit, .delete{
+            width: 5%;
+        }
+        
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+            /* This will add a background color to even rows */
+        }
+
+        tr:hover {
+            background-color: #ddd;
+            /* This will change the background color of a row when hovered over */
+        }
+
+
+        /* Define some styles for the element with the "update" class */
+        .update {
+            display: none;
+            color: white;
+            background-color: green;
+        }
+
+        .editButton {
+            background-color: #e0ac1a;
+            color: white;
+        }
+
+        .deleteButton {
+            background-color: #f44336;
+            color: white;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 400px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.7;
+            color: black;
+            cursor: pointer;
+        }
+
+        .add {
+            background-color: #4CAF50;
+        }
+
+        .openAll {
+            background-color: #520d92;
+            margin-left: 100px;
+        }
+
+    </style>
+    <!-- End of the header section -->
+</head>
+<!-- End of the header section -->
+
+<body>
+    <!-- Start of the body section -->
+    <form>
+        <h2>Daily Task</h2>
+        <!-- Start of the form element -->
+        <input type="text" class="todo" placeholder='Add Url'>
+        <!-- Create a text input field with the "todo" class and a placeholder text -->
+        <button class="add" type="button" onclick="addData()">Add Url</button>
+        <!-- Create a button with the "add" and "type" classes and an onclick event handler that calls the addData() function -->
+        <button class="update" type="button">Update Url</button>
+        <!-- Create a button with the "update" and "type" classes -->
+        <button class="openAll" type="button" onclick="openUrls()">Open All Urls</button>
+    </form>
+    <!-- End of the form element -->
+    <table>
+
+        <tbody></tbody>
+    </table>
+    <!-- End of the table element -->
+    <script>
+        // Start of the script section
+        let api = "https://script.google.com/macros/s/AKfycbxZhC5SPCcrXTdCjMv37J42cBuIkNukhWC193JkAf3QAuosf7HkpAb9885F9zVqqYBy/exec";
+        // Set the API URL as a variable
+        let form = document.querySelector("form");
+        // Find the form element and set it as a variable
+        let add = document.querySelector(".add");
+        // Find the element with the "add" class and set it as a variable
+        let update = document.querySelector(".update");
+        // Find the element with the "update" class and set it as a variable
+        let tbody = document.querySelector("tbody");
+        // Find the table body element and set it as a variable
+        function addData() {
+            // Change the text content of the add button to indicate that data is being added
+            console.log("hello")
+            add.textContent = "Adding.."
+            // Create an object with the todo value obtained from the form
+            let obj = {
+                todo: form[0].value
+            }
+            // Use fetch to make a POST request to the API endpoint with the JSON stringified obj as the request body
+            fetch(api, {
+                method: "POST",
+                body: JSON.stringify(obj)
+            })
+                // Parse the response text from the server and call readData() function to update the UI with the new data
+                .then(res => res.text())
+                .then(data => {
+                    readData()
+                    // Show an alert with the response message from the server
+                    // alert(data)
+                    // Reset the form and change the text content of the add button back to its original state
+                    add.textContent = "Add Url"
+                    form.reset();
+                });
+        }
+
+        function readData() {
+            // Use fetch to make a GET request to the API endpoint and parse the JSON response
+            fetch(api)
+                .then(res => res.json())
+                .then(data => {
+                    // Extract the todo data from the response
+                    let todo = data.todo;
+                    // Map each todo item to a string of table row HTML
+                    let trtd = todo.map(each => {
+                        return `
+            <tr>
+            <td class="id">${each[0] - 1}.</td>    
+            <td class="data"><a href="${each[1]}" target="_blank">${each[1]}</a></td> 
+            <td class="edit"><button class="editButton" onclick="updateCall(this,${each[0]})">Edit</button></td>    
+            <td class="delete"><button class="deleteButton" onclick="delData(${each[0]})">Delete</button></td>    
+            </tr>
+            
+            `
+                    })
+                    // Join the array of table row HTML strings and set the innerHTML of the tbody element to it
+                    tbody.innerHTML = trtd.join("");
+                })
+        }
+        // Call the readData() function on page load to populate the table with data from the API
+        readData()
+
+        function delData(id) {
+            // Use fetch to make a GET request to the API endpoint to delete the todo item with the given id
+            fetch(api + `?del=true&id=${id}`)
+                .then(res => res.text())
+                .then(data => {
+                    // Update the UI by calling readData() function and show an alert with the response message from the server
+                    readData()
+                    // alert(data)
+                })
+        }
+
+        function updateCall(elm, id) {
+            // Hide the add button and show the update button
+            add.style.display = "none"
+            update.style.display = "unset"
+            // Get the current todo value from the data cell of the current row and set the form value to it
+            let todo = elm.parentElement.querySelector(".data").textContent;
+            form[0].value = todo;
+            // Set the onclick attribute of the update button to call updateData() function with the current todo item id as an argument
+            update.setAttribute("onclick", `updateData(${id})`)
+        }
+        function updateData(id) {
+            update.textContent = "Updating.."
+            // send a fetch request to update the todo data
+            fetch(api + `?update=true&id=${id}&data=${form[0].value}`)
+                .then(res => res.text())
+                .then(data => {
+                    // read the updated data
+                    readData()
+                    // alert(data)
+                    // reset the form input and update button text
+                    form.reset()
+                    update.textContent = "Update Url"
+                    // show the add button and hide the update button
+                    add.style.display = "unset"
+                    update.style.display = "none"
+                })
+        }
+        function openUrls() {
+            var items = document.getElementsByClassName("data");
+            console.log(items[0].chil)
+            for (var i = 0; i < items.length; i++) {
+                window.open(items[i].textContent, '_blank');
+            }
+        }
+
+        
+    </script>
+</body>
